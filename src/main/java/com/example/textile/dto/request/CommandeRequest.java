@@ -18,7 +18,6 @@ public class CommandeRequest {
     private Long clientId;
 
     private LocalDate datePrevueLivraison;
-
     private Priorite priorite;
 
     @NotEmpty(message = "La commande doit contenir au moins une ligne")

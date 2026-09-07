@@ -57,6 +57,20 @@ public class CommandeServiceImpl implements CommandeService {
         return commandeMapper.toResponse(commandeSauvegardee);
     }
 
+    @Override
+    public List<CommandeResponse> listerCommandes() {
+        return commandeRepository.findAll().stream()
+                .map(commandeMapper::toResponse)
+                .toList();
+    }
+
+    @Override
+    public CommandeResponse obtenirCommande(Long id) {
+        Commande commande = commandeRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Commande introuvable avec l'id " + id));
+        return commandeMapper.toResponse(commande);
+    }
+
     private List<LigneCommande> construireLignes(List<LigneCommandeRequest> lignesRequest, Commande commande) {
         List<LigneCommande> lignes = new ArrayList<>();
         for (LigneCommandeRequest ligneRequest : lignesRequest) {
