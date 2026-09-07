@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Nouvelle commande</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <h1>Nouvelle commande</h1>
+
+    <div class="alert-error" th:if="${erreurMetier}" th:text="${erreurMetier}"></div>
+
+    <form th:action="@{/commandes}" th:object="${commandeRequest}" method="post">
+
+        <div class="form-group">
+            <label for="clientId">Client</label>
+            <select id="clientId" th:field="*{clientId}">
+                <option value="">-- Sélectionner un client --</option>
+                <option th:each="client : ${clients}"
+                        th:value="${client.id}"
+                        th:text="${client.nom}"></option>
+            </select>
+            <span class="error" th:if="${#fields.hasErrors('clientId')}" th:errors="*{clientId}"></span>
+        </div>
+
+        <div class="form-group">
+            <label for="datePrevueLivraison">Date prévue de livraison</label>
+            <input type="date" id="datePrevueLivraison" th:field="*{datePrevueLivraison}">
+        </div>
+
+        <div class="form-group">
+            <label for="priorite">Priorité</label>
+            <select id="priorite" th:field="*{priorite}">
+                <option th:each="p : ${priorites}" th:value="${p}" th:text="${p}"></option>
+            </select>
+        </div>
+
+        <h2>Lignes de commande</h2>
+        <span class="error" th:if="${#fields.hasErrors('lignes')}" th:errors="*{lignes}"></span>
+
+        <div class="ligne" th:each="ligne, iter : *{lignes}">
+            <h3>Article <span th:text="${iter.count}">1</span></h3>
+
+            <div class="form-group">
+                <label>Produit</label>
+                <select th:field="*{lignes[__${iter.index}__].produitId}">
+                    <option value="">-- Aucun --</option>
+                    <option th:each="produit : ${produits}"
+                            th:value="${produit.id}"
+                            th:text="${produit.nom} + ' (' + ${produit.reference} + ')'"></option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label>Quantité</label>
+                <input type="number" min="1" th:field="*{lignes[__${iter.index}__].quantite}">
+                <span class="error"
+                      th:if="${#fields.hasErrors('lignes[' + iter.index + '].quantite')}"
+                      th:errors="*{lignes[__${iter.index}__].quantite}"></span>
+            </div>
+
+            <div class="form-group">
+                <label>Taille</label>
+                <input type="text" th:field="*{lignes[__${iter.index}__].taille}">
+            </div>
+
+            <div class="form-group">
+                <label>Couleur</label>
+                <input type="text" th:field="*{lignes[__${iter.index}__].couleur}">
+            </div>
+        </div>
+
+        <button type="submit">Créer la commande</button>
+        <a th:href="@{/commandes}">Annuler</a>
+    </form>
+</div>
+</body>
+</html>

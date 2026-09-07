@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Liste des commandes</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <h1>Commandes</h1>
+    <a class="btn" th:href="@{/commandes/nouvelle}">+ Nouvelle commande</a>
+
+    <table>
+        <thead>
+        <tr>
+            <th>Numéro</th>
+            <th>Client</th>
+            <th>Date</th>
+            <th>Priorité</th>
+            <th>Statut</th>
+            <th>Articles</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="commande : ${commandes}">
+            <td th:text="${commande.numero}">CMD-0001</td>
+            <td th:text="${commande.client.nom}">Client</td>
+            <td th:text="${commande.dateCommande}">2026-01-01</td>
+            <td th:text="${commande.priorite}">NORMALE</td>
+            <td th:text="${commande.statut}">STATUT</td>
+            <td th:text="${#lists.size(commande.lignes)} + ' article(s)'">0 article(s)</td>
+        </tr>
+        <tr th:if="${#lists.isEmpty(commandes)}">
+            <td colspan="6">Aucune commande pour le moment.</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>
