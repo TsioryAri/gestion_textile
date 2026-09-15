@@ -10,6 +10,7 @@ import com.example.textile.repository.ClientRepository;
 import com.example.textile.repository.CommandeRepository;
 import com.example.textile.repository.ProduitRepository;
 import com.example.textile.service.CommandeService;
+import com.example.textile.service.ProductionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,15 +25,18 @@ public class CommandeServiceImpl implements CommandeService {
     private final ClientRepository clientRepository;
     private final ProduitRepository produitRepository;
     private final CommandeMapper commandeMapper;
+    private final ProductionService productionService;
 
     public CommandeServiceImpl(CommandeRepository commandeRepository,
                                ClientRepository clientRepository,
                                ProduitRepository produitRepository,
-                               CommandeMapper commandeMapper) {
+                               CommandeMapper commandeMapper,
+                               ProductionService productionService) {
         this.commandeRepository = commandeRepository;
         this.clientRepository = clientRepository;
         this.produitRepository = produitRepository;
         this.commandeMapper = commandeMapper;
+        this.productionService = productionService;
     }
 
     @Override
@@ -51,6 +55,7 @@ public class CommandeServiceImpl implements CommandeService {
 
         List<LigneCommande> lignes = construireLignes(request.getLignes(), commande);
         commande.setLignesCommande(lignes);
+        commande.setEtapesProduction(productionService.initialiserEtapes(commande));
 
         Commande commandeSauvegardee = commandeRepository.save(commande);
 
