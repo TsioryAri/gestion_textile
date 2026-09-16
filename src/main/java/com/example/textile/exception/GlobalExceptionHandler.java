@@ -46,4 +46,19 @@ public class GlobalExceptionHandler {
                 HttpStatus.INTERNAL_SERVER_ERROR.value(), "Internal Server Error", "Une erreur inattendue est survenue");
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
     }
+
+    // ajouteko
+    @ExceptionHandler(org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<ErrorResponse> handleTypeMismatch(
+            org.springframework.web.method.annotation.MethodArgumentTypeMismatchException ex) {
+        String valeursValides = ex.getRequiredType() != null && ex.getRequiredType().isEnum()
+                ? java.util.Arrays.toString(ex.getRequiredType().getEnumConstants())
+                : "";
+        ErrorResponse error = new ErrorResponse(
+                HttpStatus.BAD_REQUEST.value(),
+                "Invalid Parameter",
+                "Valeur invalide pour '" + ex.getName() + "': '" + ex.getValue() + "'. Valeurs acceptées : " + valeursValides
+        );
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+    }
 }
