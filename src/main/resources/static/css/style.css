@@ -12,3 +12,10 @@ input, select { width: 100%; padding: 8px; box-sizing: border-box; }
 .error { color: #c0392b; font-size: 0.9em; display: block; margin-top: 4px; }
 .alert-error { background: #fdecea; color: #c0392b; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
 button { background: #2980b9; color: white; border: none; padding: 10px 20px; border-radius: 4px; cursor: pointer; }
+
+.badge { display: inline-block; padding: 3px 10px; border-radius: 12px; color: white; font-size: 0.85em; font-weight: bold; }
+.badge-en_attente { background: #95a5a6; }
+.badge-en_cours { background: #f39c12; }
+.badge-terminee { background: #27ae60; }
+.badge-bloquee { background: #c0392b; }
+.alert-success { background: #eafaf1; color: #27ae60; padding: 12px; border-radius: 4px; margin-bottom: 15px; }

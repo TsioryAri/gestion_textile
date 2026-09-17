@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Détail commande</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <a th:href="@{/commandes}">&larr; Retour à la liste</a>
+    <h1 th:text="'Commande ' + ${commande.numero}">CMD-0001</h1>
+
+    <div class="alert-error" th:if="${erreurTransition}" th:text="${erreurTransition}"></div>
+    <div class="alert-success" th:if="${succesMessage}" th:text="${succesMessage}"></div>
+
+    <p><strong>Client :</strong> <span th:text="${commande.client.nom}"></span></p>
+    <p><strong>Statut commande :</strong> <span th:text="${commande.statut}"></span></p>
+    <p><strong>Priorité :</strong> <span th:text="${commande.priorite}"></span></p>
+
+    <h2>Suivi de production</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Étape</th>
+            <th>Statut</th>
+            <th>Début</th>
+            <th>Fin</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="etape : ${etapes}">
+            <td th:text="${etape.typeEtape}">COUPE</td>
+            <td>
+                <span th:class="'badge badge-' + ${#strings.toLowerCase(etape.statut)}"
+                      th:text="${etape.statut}">STATUT</span>
+            </td>
+            <td th:text="${etape.dateDebut != null ? #temporals.format(etape.dateDebut, 'dd/MM HH:mm') : '-'}">-</td>
+            <td th:text="${etape.dateFinReelle != null ? #temporals.format(etape.dateFinReelle, 'dd/MM HH:mm') : '-'}">-</td>
+            <td>
+                <form th:if="${etape.statut.name() == 'EN_ATTENTE'}" method="post"
+                      th:action="@{/commandes/{commandeId}/production/steps/{step}/start(commandeId=${commande.id}, step=${etape.typeEtape})}">
+                    <button type="submit">Démarrer</button>
+                </form>
+                <form th:if="${etape.statut.name() == 'EN_COURS'}" method="post"
+                      th:action="@{/commandes/{commandeId}/production/steps/{step}/complete(commandeId=${commande.id}, step=${etape.typeEtape})}">
+                    <button type="submit">Terminer</button>
+                </form>
+                <span th:if="${etape.statut.name() == 'TERMINEE'}">✓ Terminée</span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h2>Articles</h2>
+    <table>
+        <thead>
+        <tr>
+            <th>Produit</th>
+            <th>Quantité</th>
+            <th>Taille</th>
+            <th>Couleur</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="ligne : ${commande.lignes}">
+            <td th:text="${ligne.produitNom}"></td>
+            <td th:text="${ligne.quantite}"></td>
+            <td th:text="${ligne.taille} ?: '-'"></td>
+            <td th:text="${ligne.couleur} ?: '-'"></td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

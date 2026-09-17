@@ -23,7 +23,7 @@
         </thead>
         <tbody>
         <tr th:each="commande : ${commandes}">
-            <td th:text="${commande.numero}">CMD-0001</td>
+            <td><a th:href="@{/commandes/{id}(id=${commande.id})}" th:text="${commande.numero}">CMD-0001</a></td>
             <td th:text="${commande.client.nom}">Client</td>
             <td th:text="${commande.dateCommande}">2026-01-01</td>
             <td th:text="${commande.priorite}">NORMALE</td>

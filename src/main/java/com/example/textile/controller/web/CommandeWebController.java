@@ -6,6 +6,7 @@ import com.example.textile.entity.Priorite;
 import com.example.textile.exception.BusinessException;
 import com.example.textile.exception.ResourceNotFoundException;
 import com.example.textile.repository.ClientRepository;
+import com.example.textile.repository.EtapeProductionRepository;
 import com.example.textile.repository.ProduitRepository;
 import com.example.textile.service.CommandeService;
 import org.springframework.stereotype.Controller;
@@ -13,6 +14,7 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,15 +29,18 @@ public class CommandeWebController {
     private final CommandeService commandeService;
     private final ClientRepository clientRepository;
     private final ProduitRepository produitRepository;
+    private final EtapeProductionRepository etapeProductionRepository;
     private final Validator validator;
 
     public CommandeWebController(CommandeService commandeService,
                                  ClientRepository clientRepository,
                                  ProduitRepository produitRepository,
+                                 EtapeProductionRepository etapeProductionRepository,
                                  Validator validator) {
         this.commandeService = commandeService;
         this.clientRepository = clientRepository;
         this.produitRepository = produitRepository;
+        this.etapeProductionRepository = etapeProductionRepository;
         this.validator = validator;
     }
 
@@ -43,6 +48,18 @@ public class CommandeWebController {
     public String listerCommandes(Model model) {
         model.addAttribute("commandes", commandeService.listerCommandes());
         return "commandes/liste";
+    }
+
+    @GetMapping("/{id}")
+    public String detailCommande(@PathVariable Long id, Model model, RedirectAttributes redirectAttributes) {
+        try {
+            model.addAttribute("commande", commandeService.obtenirCommande(id));
+            model.addAttribute("etapes", etapeProductionRepository.findByCommandeId(id));
+            return "commandes/detail";
+        } catch (ResourceNotFoundException e) {
+            redirectAttributes.addFlashAttribute("erreurTransition", e.getMessage());
+            return "redirect:/commandes";
+        }
     }
 
     @GetMapping("/nouvelle")
@@ -56,7 +73,6 @@ public class CommandeWebController {
     public String creerCommande(@ModelAttribute CommandeRequest commandeRequest,
                                 BindingResult bindingResult,
                                 Model model) {
-        // Le formulaire propose 3 emplacements ; on retire ceux laissés vides
         List<LigneCommandeRequest> lignesRemplies = commandeRequest.getLignes().stream()
                 .filter(l -> l.getProduitId() != null && l.getQuantite() != null)
                 .collect(Collectors.toList());
