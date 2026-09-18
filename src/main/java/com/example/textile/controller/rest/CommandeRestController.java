@@ -31,6 +31,11 @@ public class CommandeRestController {
         return ResponseEntity.ok(commandeService.listerCommandes());
     }
 
+    @GetMapping("/delayed")
+    public ResponseEntity<List<CommandeResponse>> listerCommandesEnRetard() {
+        return ResponseEntity.ok(commandeService.listerCommandesEnRetard());
+    }
+
     @GetMapping("/{id}")
     public ResponseEntity<CommandeResponse> obtenirCommande(@PathVariable Long id) {
         return ResponseEntity.ok(commandeService.obtenirCommande(id));

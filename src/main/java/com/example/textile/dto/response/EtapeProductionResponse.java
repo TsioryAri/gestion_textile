@@ -19,4 +19,5 @@ public class EtapeProductionResponse {
     private StatutEtape statut;
     private LocalDateTime dateDebut;
     private LocalDateTime dateFinReelle;
+    private Integer quantiteTraitee;
 }

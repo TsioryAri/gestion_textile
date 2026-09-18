@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 @Controller
@@ -36,9 +37,10 @@ public class ProductionWebController {
     @PostMapping("/steps/{step}/complete")
     public String terminerEtape(@PathVariable Long commandeId,
                                 @PathVariable TypeEtape step,
+                                @RequestParam(required = false) Integer quantiteTraitee,
                                 RedirectAttributes redirectAttributes) {
         try {
-            productionService.terminerEtape(commandeId, step);
+            productionService.terminerEtape(commandeId, step, quantiteTraitee);
             redirectAttributes.addFlashAttribute("succesMessage", "Étape " + step + " terminée.");
         } catch (BusinessException | ResourceNotFoundException e) {
             redirectAttributes.addFlashAttribute("erreurTransition", e.getMessage());

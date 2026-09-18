@@ -9,5 +9,5 @@ import java.util.List;
 public interface ProductionService {
     List<EtapeProduction> initialiserEtapes(Commande commande);
     EtapeProduction demarrerEtape(Long commandeId, TypeEtape type);
-    EtapeProduction terminerEtape(Long commandeId, TypeEtape type);
+    EtapeProduction terminerEtape(Long commandeId, TypeEtape type, Integer quantiteTraitee);
 }

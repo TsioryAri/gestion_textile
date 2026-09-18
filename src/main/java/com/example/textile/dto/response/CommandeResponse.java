@@ -23,4 +23,5 @@ public class CommandeResponse {
     private Priorite priorite;
     private StatutCommande statut;
     private List<LigneCommandeResponse> lignes;
+    private Integer joursRetard; // null si pas de date prévue ; 0 si à l'heure ; >0 si en retard
 }

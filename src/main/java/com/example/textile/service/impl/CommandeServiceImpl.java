@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -74,6 +75,15 @@ public class CommandeServiceImpl implements CommandeService {
         Commande commande = commandeRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Commande introuvable avec l'id " + id));
         return commandeMapper.toResponse(commande);
+    }
+
+    @Override
+    public List<CommandeResponse> listerCommandesEnRetard() {
+        List<StatutCommande> statutsExclus = List.of(StatutCommande.LIVREE, StatutCommande.ANNULEE);
+        return commandeRepository.findByDatePrevueLivraisonBeforeAndStatutNotIn(LocalDate.now(), statutsExclus)
+                .stream()
+                .map(commandeMapper::toResponse)
+                .toList();
     }
 
     private List<LigneCommande> construireLignes(List<LigneCommandeRequest> lignesRequest, Commande commande) {

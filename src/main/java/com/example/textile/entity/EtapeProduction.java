@@ -47,4 +47,7 @@ public class EtapeProduction {
     @Enumerated(EnumType.STRING)
     @Column(name = "resultat_qualite")
     private ResultatQualite resultatQualite; // rempli uniquement quand typeEtape = CONTROLE_QUALITE
+
+    @Column(name = "quantite_traitee")
+    private Integer quantiteTraitee;
 }

@@ -87,7 +87,7 @@ class ProductionServiceImplTest {
         Long commandeId = creerCommandeDeTest();
 
         productionService.demarrerEtape(commandeId, TypeEtape.COUPE);
-        productionService.terminerEtape(commandeId, TypeEtape.COUPE);
+        productionService.terminerEtape(commandeId, TypeEtape.COUPE, 20); // quantité ajoutée (20 = quantité de la ligne de test)
 
         EtapeProduction couture = productionService.demarrerEtape(commandeId, TypeEtape.COUTURE);
 
@@ -98,7 +98,7 @@ class ProductionServiceImplTest {
     void terminerEtapeNonDemarree_doitEchouer() {
         Long commandeId = creerCommandeDeTest();
 
-        assertThatThrownBy(() -> productionService.terminerEtape(commandeId, TypeEtape.COUPE))
+        assertThatThrownBy(() -> productionService.terminerEtape(commandeId, TypeEtape.COUPE, null)) // null ajouté
                 .isInstanceOf(BusinessException.class)
                 .hasMessageContaining("EN_COURS");
     }

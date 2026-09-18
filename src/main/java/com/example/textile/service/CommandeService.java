@@ -9,4 +9,5 @@ public interface CommandeService {
     CommandeResponse creerCommande(CommandeRequest request);
     List<CommandeResponse> listerCommandes();
     CommandeResponse obtenirCommande(Long id);
+    List<CommandeResponse> listerCommandesEnRetard();
 }

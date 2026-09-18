@@ -15,6 +15,11 @@ import java.util.List;
 @Service
 public class ProductionServiceImpl implements ProductionService {
 
+    // Seules ces 3 étapes de fabrication physique suivent une quantité ; le contrôle qualité
+    // et la livraison portent sur l'ensemble du lot déjà validé, pas sur un nouveau comptage.
+    private static final List<TypeEtape> ETAPES_AVEC_QUANTITE =
+            List.of(TypeEtape.COUPE, TypeEtape.COUTURE, TypeEtape.FINITION);
+
     private final EtapeProductionRepository etapeProductionRepository;
 
     public ProductionServiceImpl(EtapeProductionRepository etapeProductionRepository) {
@@ -61,7 +66,7 @@ public class ProductionServiceImpl implements ProductionService {
 
     @Override
     @Transactional
-    public EtapeProduction terminerEtape(Long commandeId, TypeEtape type) {
+    public EtapeProduction terminerEtape(Long commandeId, TypeEtape type, Integer quantiteTraitee) {
         EtapeProduction etape = obtenirEtape(commandeId, type);
 
         if (etape.getStatut() != StatutEtape.EN_COURS) {
@@ -70,9 +75,47 @@ public class ProductionServiceImpl implements ProductionService {
                             + " (elle doit être EN_COURS)");
         }
 
+        if (ETAPES_AVEC_QUANTITE.contains(type)) {
+            validerQuantiteTraitee(etape, quantiteTraitee);
+            etape.setQuantiteTraitee(quantiteTraitee);
+        }
+
         etape.setStatut(StatutEtape.TERMINEE);
         etape.setDateFinReelle(LocalDateTime.now());
         return etapeProductionRepository.save(etape);
+    }
+
+    private void validerQuantiteTraitee(EtapeProduction etape, Integer quantiteTraitee) {
+        TypeEtape type = etape.getTypeEtape();
+
+        if (quantiteTraitee == null || quantiteTraitee <= 0) {
+            throw new BusinessException(
+                    "La quantité traitée est obligatoire et doit être positive pour l'étape " + type);
+        }
+
+        int quantiteCommandee = etape.getCommande().getLignesCommande().stream()
+                .mapToInt(LigneCommande::getQuantite)
+                .sum();
+
+        if (quantiteTraitee > quantiteCommandee) {
+            throw new BusinessException(
+                    "La quantité traitée (" + quantiteTraitee + ") dépasse la quantité commandée ("
+                            + quantiteCommandee + ")");
+        }
+
+        int indexActuel = ETAPES_AVEC_QUANTITE.indexOf(type);
+        if (indexActuel > 0) {
+            TypeEtape typePrecedent = ETAPES_AVEC_QUANTITE.get(indexActuel - 1);
+            EtapeProduction etapePrecedente = obtenirEtape(etape.getCommande().getId(), typePrecedent);
+            Integer quantitePrecedente = etapePrecedente.getQuantiteTraitee();
+
+            if (quantitePrecedente == null || quantiteTraitee > quantitePrecedente) {
+                throw new BusinessException(
+                        "La quantité traitée pour " + type + " (" + quantiteTraitee
+                                + ") ne peut pas dépasser celle de l'étape précédente " + typePrecedent
+                                + " (" + (quantitePrecedente != null ? quantitePrecedente : 0) + ")");
+            }
+        }
     }
 
     private EtapeProduction obtenirEtape(Long commandeId, TypeEtape type) {

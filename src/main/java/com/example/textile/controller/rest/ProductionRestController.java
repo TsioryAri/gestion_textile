@@ -43,9 +43,12 @@ public class ProductionRestController {
     }
 
     @PostMapping("/steps/{step}/complete")
-    public ResponseEntity<EtapeProductionResponse> terminerEtape(@PathVariable Long commandeId,
-                                                                 @PathVariable TypeEtape step) {
-        EtapeProduction etape = productionService.terminerEtape(commandeId, step);
+    public ResponseEntity<EtapeProductionResponse> terminerEtape(
+            @PathVariable Long commandeId,
+            @PathVariable TypeEtape step,
+            @RequestBody(required = false) com.example.textile.dto.request.TerminerEtapeRequest request) {
+        Integer quantite = request != null ? request.getQuantiteTraitee() : null;
+        EtapeProduction etape = productionService.terminerEtape(commandeId, step, quantite);
         return ResponseEntity.ok(etapeProductionMapper.toResponse(etape));
     }
 }

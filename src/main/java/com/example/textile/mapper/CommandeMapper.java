@@ -3,11 +3,11 @@ package com.example.textile.mapper;
 import com.example.textile.dto.response.ClientResponse;
 import com.example.textile.dto.response.CommandeResponse;
 import com.example.textile.dto.response.LigneCommandeResponse;
-import com.example.textile.entity.Client;
-import com.example.textile.entity.Commande;
-import com.example.textile.entity.LigneCommande;
+import com.example.textile.entity.*;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 @Component
@@ -23,7 +23,23 @@ public class CommandeMapper {
         response.setPriorite(commande.getPriorite());
         response.setStatut(commande.getStatut());
         response.setLignes(toLigneResponseList(commande.getLignesCommande()));
+        response.setJoursRetard(calculerJoursRetard(commande));
         return response;
+    }
+
+    private Integer calculerJoursRetard(Commande commande) {
+        if (commande.getDatePrevueLivraison() == null) {
+            return null;
+        }
+
+        LocalDate dateReference = commande.getEtapesProduction().stream()
+                .filter(e -> e.getTypeEtape() == TypeEtape.LIVRAISON && e.getStatut() == StatutEtape.TERMINEE)
+                .findFirst()
+                .map(e -> e.getDateFinReelle().toLocalDate())
+                .orElse(LocalDate.now());
+
+        long retard = ChronoUnit.DAYS.between(commande.getDatePrevueLivraison(), dateReference);
+        return (int) Math.max(retard, 0);
     }
 
     private ClientResponse toClientResponse(Client client) {

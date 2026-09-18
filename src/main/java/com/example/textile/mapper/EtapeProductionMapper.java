@@ -13,7 +13,8 @@ public class EtapeProductionMapper {
                 etape.getTypeEtape(),
                 etape.getStatut(),
                 etape.getDateDebut(),
-                etape.getDateFinReelle()
+                etape.getDateFinReelle(),
+                etape.getQuantiteTraitee()
         );
     }
 }
