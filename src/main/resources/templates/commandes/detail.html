@@ -23,6 +23,7 @@
         <tr>
             <th>Étape</th>
             <th>Statut</th>
+            <th>Qté traitée</th>
             <th>Début</th>
             <th>Fin</th>
             <th>Action</th>
@@ -35,18 +36,44 @@
                 <span th:class="'badge badge-' + ${#strings.toLowerCase(etape.statut)}"
                       th:text="${etape.statut}">STATUT</span>
             </td>
+            <td th:text="${etape.quantiteTraitee} ?: '-'">-</td>
             <td th:text="${etape.dateDebut != null ? #temporals.format(etape.dateDebut, 'dd/MM HH:mm') : '-'}">-</td>
             <td th:text="${etape.dateFinReelle != null ? #temporals.format(etape.dateFinReelle, 'dd/MM HH:mm') : '-'}">-</td>
             <td>
+                <!-- Cas spécial : contrôle qualité EN_COURS -->
+                <form th:if="${etape.typeEtape.name() == 'CONTROLE_QUALITE' and etape.statut.name() == 'EN_COURS'}"
+                      method="post"
+                      th:action="@{/commandes/{commandeId}/production/quality-control(commandeId=${commande.id})}">
+                    <select name="resultat" required>
+                        <option value="CONFORME">Conforme</option>
+                        <option value="NON_CONFORME">Non conforme</option>
+                    </select>
+                    <input type="text" name="commentaire" placeholder="Commentaire (optionnel)">
+                    <button type="submit">Valider le contrôle</button>
+                </form>
+
+                <!-- Cas normal : démarrer -->
                 <form th:if="${etape.statut.name() == 'EN_ATTENTE'}" method="post"
                       th:action="@{/commandes/{commandeId}/production/steps/{step}/start(commandeId=${commande.id}, step=${etape.typeEtape})}">
                     <button type="submit">Démarrer</button>
                 </form>
-                <form th:if="${etape.statut.name() == 'EN_COURS'}" method="post"
+
+                <!-- Cas normal : terminer (sauf contrôle qualité, déjà géré ci-dessus) -->
+                <form th:if="${etape.statut.name() == 'EN_COURS' and etape.typeEtape.name() != 'CONTROLE_QUALITE'}"
+                      method="post"
                       th:action="@{/commandes/{commandeId}/production/steps/{step}/complete(commandeId=${commande.id}, step=${etape.typeEtape})}">
+                    <input th:if="${etape.typeEtape.name() == 'COUPE' or etape.typeEtape.name() == 'COUTURE' or etape.typeEtape.name() == 'FINITION'}"
+                           type="number" name="quantiteTraitee" placeholder="Quantité" min="1" required style="width:100px; display:inline-block;">
                     <button type="submit">Terminer</button>
                 </form>
-                <span th:if="${etape.statut.name() == 'TERMINEE'}">✓ Terminée</span>
+
+                <!-- Terminée : afficher le résultat si contrôle qualité -->
+                <span th:if="${etape.statut.name() == 'TERMINEE'}">
+                    ✓ Terminée
+                    <span th:if="${etape.resultatQualite != null}"
+                          th:class="'badge ' + (${etape.resultatQualite.name() == 'CONFORME'} ? 'badge-terminee' : 'badge-bloquee')"
+                          th:text="${etape.resultatQualite}"></span>
+                </span>
             </td>
         </tr>
         </tbody>
@@ -56,37 +83,18 @@
     <table>
         <thead>
         <tr>
-            <th>Étape</th>
-            <th>Statut</th>
-            <th>Qté traitée</th>
-            <th>Début</th>
-            <th>Fin</th>
-            <th>Action</th>
+            <th>Produit</th>
+            <th>Quantité</th>
+            <th>Taille</th>
+            <th>Couleur</th>
         </tr>
         </thead>
         <tbody>
-        <tr th:each="etape : ${etapes}">
-            <td th:text="${etape.typeEtape}">COUPE</td>
-            <td>
-        <span th:class="'badge badge-' + ${#strings.toLowerCase(etape.statut)}"
-              th:text="${etape.statut}">STATUT</span>
-            </td>
-            <td th:text="${etape.quantiteTraitee} ?: '-'">-</td>
-            <td th:text="${etape.dateDebut != null ? #temporals.format(etape.dateDebut, 'dd/MM HH:mm') : '-'}">-</td>
-            <td th:text="${etape.dateFinReelle != null ? #temporals.format(etape.dateFinReelle, 'dd/MM HH:mm') : '-'}">-</td>
-            <td>
-                <form th:if="${etape.statut.name() == 'EN_ATTENTE'}" method="post"
-                      th:action="@{/commandes/{commandeId}/production/steps/{step}/start(commandeId=${commande.id}, step=${etape.typeEtape})}">
-                    <button type="submit">Démarrer</button>
-                </form>
-                <form th:if="${etape.statut.name() == 'EN_COURS'}" method="post"
-                      th:action="@{/commandes/{commandeId}/production/steps/{step}/complete(commandeId=${commande.id}, step=${etape.typeEtape})}">
-                    <input th:if="${etape.typeEtape.name() == 'COUPE' or etape.typeEtape.name() == 'COUTURE' or etape.typeEtape.name() == 'FINITION'}"
-                           type="number" name="quantiteTraitee" placeholder="Quantité" min="1" required style="width:100px; display:inline-block;">
-                    <button type="submit">Terminer</button>
-                </form>
-                <span th:if="${etape.statut.name() == 'TERMINEE'}">✓ Terminée</span>
-            </td>
+        <tr th:each="ligne : ${commande.lignes}">
+            <td th:text="${ligne.produitNom}"></td>
+            <td th:text="${ligne.quantite}"></td>
+            <td th:text="${ligne.taille} ?: '-'"></td>
+            <td th:text="${ligne.couleur} ?: '-'"></td>
         </tr>
         </tbody>
     </table>

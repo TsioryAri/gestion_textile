@@ -14,7 +14,9 @@ public class EtapeProductionMapper {
                 etape.getStatut(),
                 etape.getDateDebut(),
                 etape.getDateFinReelle(),
-                etape.getQuantiteTraitee()
+                etape.getQuantiteTraitee(),
+                etape.getResultatQualite(),
+                etape.getCommentaire()
         );
     }
 }

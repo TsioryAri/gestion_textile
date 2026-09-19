@@ -1,5 +1,6 @@
 package com.example.textile.dto.response;
 
+import com.example.textile.entity.ResultatQualite;
 import com.example.textile.entity.StatutEtape;
 import com.example.textile.entity.TypeEtape;
 import lombok.AllArgsConstructor;
@@ -20,4 +21,6 @@ public class EtapeProductionResponse {
     private LocalDateTime dateDebut;
     private LocalDateTime dateFinReelle;
     private Integer quantiteTraitee;
+    private ResultatQualite resultatQualite;
+    private String commentaire;
 }

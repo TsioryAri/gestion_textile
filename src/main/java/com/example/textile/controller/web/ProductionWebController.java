@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.example.textile.entity.ResultatQualite;
 
 @Controller
 @RequestMapping("/commandes/{commandeId}/production")
@@ -42,6 +43,23 @@ public class ProductionWebController {
         try {
             productionService.terminerEtape(commandeId, step, quantiteTraitee);
             redirectAttributes.addFlashAttribute("succesMessage", "Étape " + step + " terminée.");
+        } catch (BusinessException | ResourceNotFoundException e) {
+            redirectAttributes.addFlashAttribute("erreurTransition", e.getMessage());
+        }
+        return "redirect:/commandes/" + commandeId;
+    }
+
+    @PostMapping("/quality-control")
+    public String effectuerControleQualite(@PathVariable Long commandeId,
+                                           @RequestParam ResultatQualite resultat,
+                                           @RequestParam(required = false) String commentaire,
+                                           RedirectAttributes redirectAttributes) {
+        try {
+            productionService.effectuerControleQualite(commandeId, resultat, commentaire);
+            String message = resultat == ResultatQualite.CONFORME
+                    ? "Contrôle qualité validé : CONFORME."
+                    : "Contrôle qualité effectué : NON CONFORME — la livraison est bloquée.";
+            redirectAttributes.addFlashAttribute("succesMessage", message);
         } catch (BusinessException | ResourceNotFoundException e) {
             redirectAttributes.addFlashAttribute("erreurTransition", e.getMessage());
         }

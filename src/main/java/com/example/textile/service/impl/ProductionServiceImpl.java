@@ -15,8 +15,6 @@ import java.util.List;
 @Service
 public class ProductionServiceImpl implements ProductionService {
 
-    // Seules ces 3 étapes de fabrication physique suivent une quantité ; le contrôle qualité
-    // et la livraison portent sur l'ensemble du lot déjà validé, pas sur un nouveau comptage.
     private static final List<TypeEtape> ETAPES_AVEC_QUANTITE =
             List.of(TypeEtape.COUPE, TypeEtape.COUTURE, TypeEtape.FINITION);
 
@@ -52,10 +50,18 @@ public class ProductionServiceImpl implements ProductionService {
         if (type.ordinal() > 0) {
             TypeEtape typePrecedent = TypeEtape.values()[type.ordinal() - 1];
             EtapeProduction etapePrecedente = obtenirEtape(commandeId, typePrecedent);
+
             if (etapePrecedente.getStatut() != StatutEtape.TERMINEE) {
                 throw new BusinessException(
                         "Impossible de démarrer " + type + " : l'étape précédente (" + typePrecedent
                                 + ") n'est pas terminée (statut actuel = " + etapePrecedente.getStatut() + ")");
+            }
+
+            // Règle spécifique : la livraison est bloquée si le contrôle qualité n'est pas conforme
+            if (type == TypeEtape.LIVRAISON && etapePrecedente.getResultatQualite() != ResultatQualite.CONFORME) {
+                throw new BusinessException(
+                        "Livraison bloquée : le contrôle qualité n'est pas conforme (résultat = "
+                                + etapePrecedente.getResultatQualite() + ")");
             }
         }
 
@@ -67,6 +73,11 @@ public class ProductionServiceImpl implements ProductionService {
     @Override
     @Transactional
     public EtapeProduction terminerEtape(Long commandeId, TypeEtape type, Integer quantiteTraitee) {
+        if (type == TypeEtape.CONTROLE_QUALITE) {
+            throw new BusinessException(
+                    "Le contrôle qualité doit être validé via l'endpoint dédié (quality-control), pas via /complete");
+        }
+
         EtapeProduction etape = obtenirEtape(commandeId, type);
 
         if (etape.getStatut() != StatutEtape.EN_COURS) {
@@ -80,6 +91,24 @@ public class ProductionServiceImpl implements ProductionService {
             etape.setQuantiteTraitee(quantiteTraitee);
         }
 
+        etape.setStatut(StatutEtape.TERMINEE);
+        etape.setDateFinReelle(LocalDateTime.now());
+        return etapeProductionRepository.save(etape);
+    }
+
+    @Override
+    @Transactional
+    public EtapeProduction effectuerControleQualite(Long commandeId, ResultatQualite resultat, String commentaire) {
+        EtapeProduction etape = obtenirEtape(commandeId, TypeEtape.CONTROLE_QUALITE);
+
+        if (etape.getStatut() != StatutEtape.EN_COURS) {
+            throw new BusinessException(
+                    "Impossible de valider le contrôle qualité : statut actuel = " + etape.getStatut()
+                            + " (l'étape doit être EN_COURS ; démarrez-la d'abord)");
+        }
+
+        etape.setResultatQualite(resultat);
+        etape.setCommentaire(commentaire);
         etape.setStatut(StatutEtape.TERMINEE);
         etape.setDateFinReelle(LocalDateTime.now());
         return etapeProductionRepository.save(etape);
