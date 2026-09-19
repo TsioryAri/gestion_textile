@@ -8,6 +8,9 @@
 <body>
 <div class="container">
     <h1>Commandes</h1>
+    <form th:action="@{/logout}" method="post" style="display:inline;">
+        <button type="submit">Se déconnecter</button>
+    </form>
     <a class="btn" th:href="@{/commandes/nouvelle}">+ Nouvelle commande</a>
 
     <table>
