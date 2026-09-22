@@ -9,6 +9,7 @@ import com.example.textile.repository.ClientRepository;
 import com.example.textile.repository.EtapeProductionRepository;
 import com.example.textile.repository.ProduitRepository;
 import com.example.textile.service.CommandeService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -62,6 +63,7 @@ public class CommandeWebController {
         }
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @GetMapping("/nouvelle")
     public String afficherFormulaire(Model model) {
         model.addAttribute("commandeRequest", nouvelleCommandeVide());
@@ -69,6 +71,7 @@ public class CommandeWebController {
         return "commandes/formulaire";
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER')")
     @PostMapping
     public String creerCommande(@ModelAttribute CommandeRequest commandeRequest,
                                 BindingResult bindingResult,

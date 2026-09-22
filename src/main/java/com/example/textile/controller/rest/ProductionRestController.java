@@ -1,5 +1,6 @@
 package com.example.textile.controller.rest;
 
+import com.example.textile.dto.request.TerminerEtapeRequest;
 import com.example.textile.dto.response.EtapeProductionResponse;
 import com.example.textile.entity.EtapeProduction;
 import com.example.textile.entity.TypeEtape;
@@ -7,6 +8,7 @@ import com.example.textile.mapper.EtapeProductionMapper;
 import com.example.textile.repository.EtapeProductionRepository;
 import com.example.textile.service.ProductionService;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,6 +29,7 @@ public class ProductionRestController {
         this.etapeProductionMapper = etapeProductionMapper;
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','OPERATOR','USER')")
     @GetMapping
     public ResponseEntity<List<EtapeProductionResponse>> listerEtapes(@PathVariable Long commandeId) {
         List<EtapeProductionResponse> etapes = etapeProductionRepository.findByCommandeId(commandeId).stream()
@@ -35,6 +38,7 @@ public class ProductionRestController {
         return ResponseEntity.ok(etapes);
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','OPERATOR')")
     @PostMapping("/steps/{step}/start")
     public ResponseEntity<EtapeProductionResponse> demarrerEtape(@PathVariable Long commandeId,
                                                                  @PathVariable TypeEtape step) {
@@ -42,11 +46,12 @@ public class ProductionRestController {
         return ResponseEntity.ok(etapeProductionMapper.toResponse(etape));
     }
 
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','OPERATOR')")
     @PostMapping("/steps/{step}/complete")
     public ResponseEntity<EtapeProductionResponse> terminerEtape(
             @PathVariable Long commandeId,
             @PathVariable TypeEtape step,
-            @RequestBody(required = false) com.example.textile.dto.request.TerminerEtapeRequest request) {
+            @RequestBody(required = false) TerminerEtapeRequest request) {
         Integer quantite = request != null ? request.getQuantiteTraitee() : null;
         EtapeProduction etape = productionService.terminerEtape(commandeId, step, quantite);
         return ResponseEntity.ok(etapeProductionMapper.toResponse(etape));

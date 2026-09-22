@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Accès refusé</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <h1>Accès refusé</h1>
+    <div class="alert-error">Vous n'avez pas les droits nécessaires pour accéder à cette page.</div>
+    <a th:href="@{/commandes}">&larr; Retour à la liste des commandes</a>
+</div>
+</body>
+</html>

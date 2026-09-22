@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
     <title>Liste des commandes</title>
@@ -8,10 +8,11 @@
 <body>
 <div class="container">
     <h1>Commandes</h1>
+    <p>Connecté en tant que : <span sec:authentication="name">?</span> (<span sec:authentication="authorities">?</span>)</p>
     <form th:action="@{/logout}" method="post" style="display:inline;">
         <button type="submit">Se déconnecter</button>
     </form>
-    <a class="btn" th:href="@{/commandes/nouvelle}">+ Nouvelle commande</a>
+    <a class="btn" sec:authorize="hasAnyRole('ADMIN','MANAGER')" th:href="@{/commandes/nouvelle}">+ Nouvelle commande</a>
 
     <table>
         <thead>
