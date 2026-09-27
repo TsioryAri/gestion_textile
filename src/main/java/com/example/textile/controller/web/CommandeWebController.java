@@ -16,6 +16,14 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.Validator;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+import com.example.textile.dto.response.CommandeResponse;
+import com.example.textile.entity.StatutCommande;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
+import org.springframework.format.annotation.DateTimeFormat;
+import java.time.LocalDate;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -46,8 +54,23 @@ public class CommandeWebController {
     }
 
     @GetMapping
-    public String listerCommandes(Model model) {
-        model.addAttribute("commandes", commandeService.listerCommandes());
+    public String listerCommandes(
+            @RequestParam(required = false) StatutCommande status,
+            @RequestParam(required = false) Priorite priorite,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateDebut,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFin,
+            @PageableDefault(size = 5, sort = "dateCommande", direction = Sort.Direction.DESC) Pageable pageable,
+            Model model) {
+        Page<CommandeResponse> resultats = commandeService.rechercherCommandes(status, priorite, dateDebut, dateFin, pageable);
+
+        model.addAttribute("page", resultats);
+        model.addAttribute("statutSelectionne", status);
+        model.addAttribute("prioriteSelectionnee", priorite);
+        model.addAttribute("dateDebut", dateDebut);
+        model.addAttribute("dateFin", dateFin);
+        model.addAttribute("statuts", StatutCommande.values());
+        model.addAttribute("priorites", Priorite.values());
+
         return "commandes/liste";
     }
 

@@ -9,8 +9,12 @@ import com.example.textile.mapper.CommandeMapper;
 import com.example.textile.repository.ClientRepository;
 import com.example.textile.repository.CommandeRepository;
 import com.example.textile.repository.ProduitRepository;
+import com.example.textile.repository.specification.CommandeSpecifications;
 import com.example.textile.service.CommandeService;
 import com.example.textile.service.ProductionService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,10 +33,10 @@ public class CommandeServiceImpl implements CommandeService {
     private final ProductionService productionService;
 
     public CommandeServiceImpl(CommandeRepository commandeRepository,
-                               ClientRepository clientRepository,
-                               ProduitRepository produitRepository,
-                               CommandeMapper commandeMapper,
-                               ProductionService productionService) {
+                                ClientRepository clientRepository,
+                                ProduitRepository produitRepository,
+                                CommandeMapper commandeMapper,
+                                ProductionService productionService) {
         this.commandeRepository = commandeRepository;
         this.clientRepository = clientRepository;
         this.produitRepository = produitRepository;
@@ -84,6 +88,20 @@ public class CommandeServiceImpl implements CommandeService {
                 .stream()
                 .map(commandeMapper::toResponse)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public Page<CommandeResponse> rechercherCommandes(StatutCommande statut, Priorite priorite,
+                                                        LocalDate dateDebut, LocalDate dateFin, Pageable pageable) {
+        Specification<Commande> spec = Specification
+                .where(CommandeSpecifications.avecStatut(statut))
+                .and(CommandeSpecifications.avecPriorite(priorite))
+                .and(CommandeSpecifications.dateCommandeApres(dateDebut))
+                .and(CommandeSpecifications.dateCommandeAvant(dateFin));
+
+        return commandeRepository.findAll(spec, pageable)
+                .map(commandeMapper::toResponse);
     }
 
     private List<LigneCommande> construireLignes(List<LigneCommandeRequest> lignesRequest, Commande commande) {

@@ -14,6 +14,31 @@
     </form>
     <a class="btn" sec:authorize="hasAnyRole('ADMIN','MANAGER')" th:href="@{/commandes/nouvelle}">+ Nouvelle commande</a>
 
+    <h2>Filtres</h2>
+    <form th:action="@{/commandes}" method="get" class="form-group">
+        <label>Statut</label>
+        <select name="status">
+            <option value="">-- Tous --</option>
+            <option th:each="s : ${statuts}" th:value="${s}" th:text="${s}"
+                    th:selected="${s == statutSelectionne}"></option>
+        </select>
+
+        <label>Priorité</label>
+        <select name="priorite">
+            <option value="">-- Toutes --</option>
+            <option th:each="p : ${priorites}" th:value="${p}" th:text="${p}"
+                    th:selected="${p == prioriteSelectionnee}"></option>
+        </select>
+
+        <label>Du</label>
+        <input type="date" name="dateDebut" th:value="${dateDebut}">
+        <label>Au</label>
+        <input type="date" name="dateFin" th:value="${dateFin}">
+
+        <button type="submit">Filtrer</button>
+        <a th:href="@{/commandes}">Réinitialiser</a>
+    </form>
+
     <table>
         <thead>
         <tr>
@@ -26,7 +51,7 @@
         </tr>
         </thead>
         <tbody>
-        <tr th:each="commande : ${commandes}">
+        <tr th:each="commande : ${page.content}">
             <td><a th:href="@{/commandes/{id}(id=${commande.id})}" th:text="${commande.numero}">CMD-0001</a></td>
             <td th:text="${commande.client.nom}">Client</td>
             <td th:text="${commande.dateCommande}">2026-01-01</td>
@@ -34,11 +59,21 @@
             <td th:text="${commande.statut}">STATUT</td>
             <td th:text="${#lists.size(commande.lignes)} + ' article(s)'">0 article(s)</td>
         </tr>
-        <tr th:if="${#lists.isEmpty(commandes)}">
-            <td colspan="6">Aucune commande pour le moment.</td>
+        <tr th:if="${page.content.isEmpty()}">
+            <td colspan="6">Aucune commande ne correspond à ces critères.</td>
         </tr>
         </tbody>
     </table>
+
+    <div class="pagination" th:if="${page.totalPages > 1}">
+        <span th:text="'Page ' + (${page.number} + 1) + ' / ' + ${page.totalPages} + ' (' + ${page.totalElements} + ' résultats)'"></span>
+
+        <a th:if="${!page.first}"
+           th:href="@{/commandes(page=${page.number - 1}, status=${statutSelectionne}, priorite=${prioriteSelectionnee}, dateDebut=${dateDebut}, dateFin=${dateFin})}">&laquo; Précédent</a>
+
+        <a th:if="${!page.last}"
+           th:href="@{/commandes(page=${page.number + 1}, status=${statutSelectionne}, priorite=${prioriteSelectionnee}, dateDebut=${dateDebut}, dateFin=${dateFin})}">Suivant &raquo;</a>
+    </div>
 </div>
 </body>
 </html>

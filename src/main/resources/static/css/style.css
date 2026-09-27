@@ -19,3 +19,6 @@ button { background: #2980b9; color: white; border: none; padding: 10px 20px; bo
 .badge-terminee { background: #27ae60; }
 .badge-bloquee { background: #c0392b; }
 .alert-success { background: #eafaf1; color: #27ae60; padding: 12px; border-radius: 4px; margin-bottom: 15px; }
+.pagination { margin-top: 20px; display: flex; align-items: center; gap: 15px; }
+.pagination a { color: #2980b9; text-decoration: none; }
+.pagination a:hover { text-decoration: underline; }
