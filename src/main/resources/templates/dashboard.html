@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <title>Tableau de bord</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+</head>
+<body>
+<div class="container">
+    <a th:href="@{/commandes}">&larr; Retour à la liste</a>
+    <h1>Tableau de bord de production</h1>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <span class="stat-value" th:text="${stats.totalCommandes}">0</span>
+            <span class="stat-label">Commandes au total</span>
+        </div>
+        <div class="stat-card stat-alert">
+            <span class="stat-value" th:text="${stats.commandesEnRetard}">0</span>
+            <span class="stat-label">Commandes en retard</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-value" th:text="${#numbers.formatDecimal(stats.tauxRetardPourcentage, 1, 1)} + '%'">0%</span>
+            <span class="stat-label">Taux de retard</span>
+        </div>
+    </div>
+
+    <h2>Répartition par statut</h2>
+    <table>
+        <thead>
+        <tr><th>Statut</th><th>Nombre</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="entry : ${stats.commandesParStatut}">
+            <td th:text="${entry.key}">STATUT</td>
+            <td th:text="${entry.value}">0</td>
+        </tr>
+        </tbody>
+    </table>
+
+    <h2>Répartition par priorité</h2>
+    <table>
+        <thead>
+        <tr><th>Priorité</th><th>Nombre</th></tr>
+        </thead>
+        <tbody>
+        <tr th:each="entry : ${stats.commandesParPriorite}">
+            <td th:text="${entry.key}">PRIORITE</td>
+            <td th:text="${entry.value}">0</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

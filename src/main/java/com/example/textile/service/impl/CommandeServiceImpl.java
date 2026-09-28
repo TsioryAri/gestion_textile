@@ -3,6 +3,7 @@ package com.example.textile.service.impl;
 import com.example.textile.dto.request.CommandeRequest;
 import com.example.textile.dto.request.LigneCommandeRequest;
 import com.example.textile.dto.response.CommandeResponse;
+import com.example.textile.dto.response.StatistiquesResponse;
 import com.example.textile.entity.*;
 import com.example.textile.exception.ResourceNotFoundException;
 import com.example.textile.mapper.CommandeMapper;
@@ -21,7 +22,9 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 public class CommandeServiceImpl implements CommandeService {
@@ -102,6 +105,29 @@ public class CommandeServiceImpl implements CommandeService {
 
         return commandeRepository.findAll(spec, pageable)
                 .map(commandeMapper::toResponse);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public StatistiquesResponse obtenirStatistiques() {
+        long total = commandeRepository.count();
+
+        Map<StatutCommande, Long> parStatut = new EnumMap<>(StatutCommande.class);
+        for (StatutCommande s : StatutCommande.values()) {
+            parStatut.put(s, commandeRepository.count(CommandeSpecifications.avecStatut(s)));
+        }
+
+        Map<Priorite, Long> parPriorite = new EnumMap<>(Priorite.class);
+        for (Priorite p : Priorite.values()) {
+            parPriorite.put(p, commandeRepository.count(CommandeSpecifications.avecPriorite(p)));
+        }
+
+        List<StatutCommande> statutsExclus = List.of(StatutCommande.LIVREE, StatutCommande.ANNULEE);
+        long enRetard = commandeRepository.countByDatePrevueLivraisonBeforeAndStatutNotIn(LocalDate.now(), statutsExclus);
+
+        double tauxRetard = total > 0 ? (enRetard * 100.0 / total) : 0.0;
+
+        return new StatistiquesResponse(total, parStatut, parPriorite, enRetard, tauxRetard);
     }
 
     private List<LigneCommande> construireLignes(List<LigneCommandeRequest> lignesRequest, Commande commande) {

@@ -23,6 +23,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import java.time.LocalDate;
 
 import java.util.List;
+import com.example.textile.dto.response.StatistiquesResponse;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -78,5 +79,12 @@ public class CommandeRestController {
         EtapeProduction etape = productionService.effectuerControleQualite(
                 id, request.getResultat(), request.getCommentaire());
         return ResponseEntity.ok(etapeProductionMapper.toResponse(etape));
+    }
+
+
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','OPERATOR','USER')")
+    @GetMapping("/statistics")
+    public ResponseEntity<StatistiquesResponse> obtenirStatistiques() {
+        return ResponseEntity.ok(commandeService.obtenirStatistiques());
     }
 }

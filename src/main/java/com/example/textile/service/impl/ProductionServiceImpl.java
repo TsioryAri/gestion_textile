@@ -57,7 +57,6 @@ public class ProductionServiceImpl implements ProductionService {
                                 + ") n'est pas terminée (statut actuel = " + etapePrecedente.getStatut() + ")");
             }
 
-            // Règle spécifique : la livraison est bloquée si le contrôle qualité n'est pas conforme
             if (type == TypeEtape.LIVRAISON && etapePrecedente.getResultatQualite() != ResultatQualite.CONFORME) {
                 throw new BusinessException(
                         "Livraison bloquée : le contrôle qualité n'est pas conforme (résultat = "
@@ -67,6 +66,14 @@ public class ProductionServiceImpl implements ProductionService {
 
         etape.setStatut(StatutEtape.EN_COURS);
         etape.setDateDebut(LocalDateTime.now());
+
+        // Le statut global de la commande suit l'avancement du workflow
+        if (type == TypeEtape.COUPE) {
+            etape.getCommande().setStatut(StatutCommande.EN_PRODUCTION);
+        } else if (type == TypeEtape.CONTROLE_QUALITE) {
+            etape.getCommande().setStatut(StatutCommande.CONTROLE_QUALITE);
+        }
+
         return etapeProductionRepository.save(etape);
     }
 
@@ -93,6 +100,11 @@ public class ProductionServiceImpl implements ProductionService {
 
         etape.setStatut(StatutEtape.TERMINEE);
         etape.setDateFinReelle(LocalDateTime.now());
+
+        if (type == TypeEtape.LIVRAISON) {
+            etape.getCommande().setStatut(StatutCommande.LIVREE);
+        }
+
         return etapeProductionRepository.save(etape);
     }
 

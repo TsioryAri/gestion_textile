@@ -13,4 +13,5 @@ public interface CommandeRepository extends JpaRepository<Commande, Long>, JpaSp
     List<Commande> findByStatut(StatutCommande statut);
     List<Commande> findByClientId(Long clientId);
     List<Commande> findByDatePrevueLivraisonBeforeAndStatutNotIn(LocalDate date, List<StatutCommande> statutsExclus);
+    long countByDatePrevueLivraisonBeforeAndStatutNotIn(LocalDate date, List<StatutCommande> statutsExclus);
 }

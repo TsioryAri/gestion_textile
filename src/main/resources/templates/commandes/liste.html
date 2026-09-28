@@ -8,6 +8,7 @@
 <body>
 <div class="container">
     <h1>Commandes</h1>
+    <a class="btn" th:href="@{/dashboard}">📊 Tableau de bord</a>
     <p>Connecté en tant que : <span sec:authentication="name">?</span> (<span sec:authentication="authorities">?</span>)</p>
     <form th:action="@{/logout}" method="post" style="display:inline;">
         <button type="submit">Se déconnecter</button>
