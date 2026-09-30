@@ -1,0 +1,20 @@
+<div xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security" th:fragment="nav">
+    <nav class="navbar">
+        <a class="navbar-brand" th:href="@{/commandes}"><span class="dot"></span> Gestion Textile</a>
+        <div class="navbar-links">
+            <a class="nav-link" th:href="@{/commandes}">Commandes</a>
+            <a class="nav-link" sec:authorize="hasAnyRole('ADMIN','MANAGER')" th:href="@{/commandes/nouvelle}">+ Nouvelle commande</a>
+            <a class="nav-link" th:href="@{/dashboard}">Tableau de bord</a>
+        </div>
+        <div class="navbar-user">
+            <span sec:authentication="name">?</span>
+            <span class="role-badge" sec:authorize="hasRole('ADMIN')">Admin</span>
+            <span class="role-badge" sec:authorize="hasRole('MANAGER')">Manager</span>
+            <span class="role-badge" sec:authorize="hasRole('OPERATOR')">Operator</span>
+            <span class="role-badge" sec:authorize="hasRole('USER')">User</span>
+            <form th:action="@{/logout}" method="post" style="margin:0;">
+                <button type="submit" class="btn-sm btn-secondary">Déconnexion</button>
+            </form>
+        </div>
+    </nav>
+</div>

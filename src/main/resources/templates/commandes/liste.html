@@ -2,79 +2,74 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
-    <title>Liste des commandes</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Commandes</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
+<div th:replace="~{fragments/nav :: nav}"></div>
+
 <div class="container">
     <h1>Commandes</h1>
-    <a class="btn" th:href="@{/dashboard}">📊 Tableau de bord</a>
-    <p>Connecté en tant que : <span sec:authentication="name">?</span> (<span sec:authentication="authorities">?</span>)</p>
-    <form th:action="@{/logout}" method="post" style="display:inline;">
-        <button type="submit">Se déconnecter</button>
-    </form>
-    <a class="btn" sec:authorize="hasAnyRole('ADMIN','MANAGER')" th:href="@{/commandes/nouvelle}">+ Nouvelle commande</a>
 
-    <h2>Filtres</h2>
-    <form th:action="@{/commandes}" method="get" class="form-group">
-        <label>Statut</label>
-        <select name="status">
-            <option value="">-- Tous --</option>
-            <option th:each="s : ${statuts}" th:value="${s}" th:text="${s}"
-                    th:selected="${s == statutSelectionne}"></option>
-        </select>
-
-        <label>Priorité</label>
-        <select name="priorite">
-            <option value="">-- Toutes --</option>
-            <option th:each="p : ${priorites}" th:value="${p}" th:text="${p}"
-                    th:selected="${p == prioriteSelectionnee}"></option>
-        </select>
-
-        <label>Du</label>
-        <input type="date" name="dateDebut" th:value="${dateDebut}">
-        <label>Au</label>
-        <input type="date" name="dateFin" th:value="${dateFin}">
-
-        <button type="submit">Filtrer</button>
-        <a th:href="@{/commandes}">Réinitialiser</a>
+    <form th:action="@{/commandes}" method="get" class="filters-bar">
+        <div class="form-group">
+            <label>Statut</label>
+            <select name="status">
+                <option value="">Tous</option>
+                <option th:each="s : ${statuts}" th:value="${s}" th:text="${s}" th:selected="${s == statutSelectionne}"></option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Priorité</label>
+            <select name="priorite">
+                <option value="">Toutes</option>
+                <option th:each="p : ${priorites}" th:value="${p}" th:text="${p}" th:selected="${p == prioriteSelectionnee}"></option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Du</label>
+            <input type="date" name="dateDebut" th:value="${dateDebut}">
+        </div>
+        <div class="form-group">
+            <label>Au</label>
+            <input type="date" name="dateFin" th:value="${dateFin}">
+        </div>
+        <div class="form-group" style="flex:0;">
+            <label>&nbsp;</label>
+            <div style="display:flex; gap:8px;">
+                <button type="submit">Filtrer</button>
+                <a class="btn btn-secondary" th:href="@{/commandes}">Réinitialiser</a>
+            </div>
+        </div>
     </form>
 
     <table>
         <thead>
-        <tr>
-            <th>Numéro</th>
-            <th>Client</th>
-            <th>Date</th>
-            <th>Priorité</th>
-            <th>Statut</th>
-            <th>Articles</th>
-        </tr>
+        <tr><th>Numéro</th><th>Client</th><th>Date</th><th>Priorité</th><th>Statut</th><th>Articles</th></tr>
         </thead>
         <tbody>
         <tr th:each="commande : ${page.content}">
-            <td><a th:href="@{/commandes/{id}(id=${commande.id})}" th:text="${commande.numero}">CMD-0001</a></td>
-            <td th:text="${commande.client.nom}">Client</td>
-            <td th:text="${commande.dateCommande}">2026-01-01</td>
-            <td th:text="${commande.priorite}">NORMALE</td>
-            <td th:text="${commande.statut}">STATUT</td>
-            <td th:text="${#lists.size(commande.lignes)} + ' article(s)'">0 article(s)</td>
-        </tr>
-        <tr th:if="${page.content.isEmpty()}">
-            <td colspan="6">Aucune commande ne correspond à ces critères.</td>
+            <td data-label="Numéro"><a th:href="@{/commandes/{id}(id=${commande.id})}" th:text="${commande.numero}"><strong>CMD-0001</strong></a></td>
+            <td data-label="Client" th:text="${commande.client.nom}">Client</td>
+            <td data-label="Date" th:text="${commande.dateCommande}">2026-01-01</td>
+            <td data-label="Priorité" th:text="${commande.priorite}">NORMALE</td>
+            <td data-label="Statut"><span th:class="'badge badge-' + ${#strings.toLowerCase(commande.statut)}" th:text="${commande.statut}">STATUT</span></td>
+            <td data-label="Articles" th:text="${#lists.size(commande.lignes)} + ' article(s)'">0 article(s)</td>
         </tr>
         </tbody>
     </table>
 
+    <div class="empty-state" th:if="${page.content.isEmpty()}">
+        <p>Aucune commande ne correspond à ces critères.</p>
+    </div>
+
     <div class="pagination" th:if="${page.totalPages > 1}">
-        <span th:text="'Page ' + (${page.number} + 1) + ' / ' + ${page.totalPages} + ' (' + ${page.totalElements} + ' résultats)'"></span>
-
-        <a th:if="${!page.first}"
-           th:href="@{/commandes(page=${page.number - 1}, status=${statutSelectionne}, priorite=${prioriteSelectionnee}, dateDebut=${dateDebut}, dateFin=${dateFin})}">&laquo; Précédent</a>
-
-        <a th:if="${!page.last}"
-           th:href="@{/commandes(page=${page.number + 1}, status=${statutSelectionne}, priorite=${prioriteSelectionnee}, dateDebut=${dateDebut}, dateFin=${dateFin})}">Suivant &raquo;</a>
+        <span th:text="'Page ' + (${page.number} + 1) + ' / ' + ${page.totalPages} + ' — ' + ${page.totalElements} + ' résultats'"></span>
+        <a th:if="${!page.first}" th:href="@{/commandes(page=${page.number - 1}, status=${statutSelectionne}, priorite=${prioriteSelectionnee}, dateDebut=${dateDebut}, dateFin=${dateFin})}">&laquo; Précédent</a>
+        <a th:if="${!page.last}" th:href="@{/commandes(page=${page.number + 1}, status=${statutSelectionne}, priorite=${prioriteSelectionnee}, dateDebut=${dateDebut}, dateFin=${dateFin})}">Suivant &raquo;</a>
     </div>
 </div>
+<script th:src="@{/js/app.js}"></script>
 </body>
 </html>

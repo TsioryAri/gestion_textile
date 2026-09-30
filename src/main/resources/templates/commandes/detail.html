@@ -2,102 +2,92 @@
 <html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Détail commande</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
 </head>
 <body>
+<div th:replace="~{fragments/nav :: nav}"></div>
+
 <div class="container">
     <a th:href="@{/commandes}">&larr; Retour à la liste</a>
     <h1 th:text="'Commande ' + ${commande.numero}">CMD-0001</h1>
+    <p style="color:var(--gray-500); margin-top:0;">
+        <span th:text="${commande.client.nom}">Client</span> ·
+        Priorité <strong th:text="${commande.priorite}">NORMALE</strong> ·
+        Statut <span th:class="'badge badge-' + ${#strings.toLowerCase(commande.statut)}" th:text="${commande.statut}">STATUT</span>
+    </p>
 
     <div class="alert-error" th:if="${erreurTransition}" th:text="${erreurTransition}"></div>
     <div class="alert-success" th:if="${succesMessage}" th:text="${succesMessage}"></div>
 
-    <p><strong>Client :</strong> <span th:text="${commande.client.nom}"></span></p>
-    <p><strong>Statut commande :</strong> <span th:text="${commande.statut}"></span></p>
-    <p><strong>Priorité :</strong> <span th:text="${commande.priorite}"></span></p>
+    <!-- Stepper visuel du workflow -->
+    <div class="stepper">
+        <div th:each="etape : ${etapes}"
+             th:class="'step ' + (${etape.statut.name() == 'TERMINEE'} ? 'done' : (${etape.statut.name() == 'EN_COURS'} ? 'active' : ''))">
+            <div class="step-circle">
+                <span th:if="${etape.statut.name() == 'TERMINEE'}">&#10003;</span>
+                <span th:unless="${etape.statut.name() == 'TERMINEE'}" th:text="${etapeStat.count}">1</span>
+            </div>
+            <div class="step-label" th:text="${etape.typeEtape}">ETAPE</div>
+        </div>
+    </div>
 
     <h2>Suivi de production</h2>
-    <table>
-        <thead>
-        <tr>
-            <th>Étape</th>
-            <th>Statut</th>
-            <th>Qté traitée</th>
-            <th>Début</th>
-            <th>Fin</th>
-            <th>Action</th>
-        </tr>
-        </thead>
-        <tbody>
-        <tr th:each="etape : ${etapes}">
-            <td th:text="${etape.typeEtape}">COUPE</td>
-            <td>
-                <span th:class="'badge badge-' + ${#strings.toLowerCase(etape.statut)}"
-                      th:text="${etape.statut}">STATUT</span>
-            </td>
-            <td th:text="${etape.quantiteTraitee} ?: '-'">-</td>
-            <td th:text="${etape.dateDebut != null ? #temporals.format(etape.dateDebut, 'dd/MM HH:mm') : '-'}">-</td>
-            <td th:text="${etape.dateFinReelle != null ? #temporals.format(etape.dateFinReelle, 'dd/MM HH:mm') : '-'}">-</td>
-            <td>
-                <span sec:authorize="hasAnyRole('ADMIN','MANAGER','OPERATOR')">
-                    <form th:if="${etape.typeEtape.name() == 'CONTROLE_QUALITE' and etape.statut.name() == 'EN_COURS'}"
-                          method="post"
-                          th:action="@{/commandes/{commandeId}/production/quality-control(commandeId=${commande.id})}">
-                        <select name="resultat" required>
-                            <option value="CONFORME">Conforme</option>
-                            <option value="NON_CONFORME">Non conforme</option>
-                        </select>
-                        <input type="text" name="commentaire" placeholder="Commentaire (optionnel)">
-                        <button type="submit">Valider le contrôle</button>
-                    </form>
+    <div th:each="etape, etapeStat : ${etapes}" class="step-panel">
+        <div class="step-panel-header">
+            <strong th:text="${etape.typeEtape}">COUPE</strong>
+            <span th:class="'badge badge-' + ${#strings.toLowerCase(etape.statut)}" th:text="${etape.statut}">STATUT</span>
+        </div>
+        <p style="margin:4px 0 12px; font-size:0.85rem; color:var(--gray-500);">
+            <span th:if="${etape.quantiteTraitee != null}">Quantité traitée : <strong th:text="${etape.quantiteTraitee}">0</strong> · </span>
+            <span th:if="${etape.dateDebut != null}">Début : <span th:text="${#temporals.format(etape.dateDebut, 'dd/MM HH:mm')}"></span> · </span>
+            <span th:if="${etape.dateFinReelle != null}">Fin : <span th:text="${#temporals.format(etape.dateFinReelle, 'dd/MM HH:mm')}"></span></span>
+        </p>
 
-                    <form th:if="${etape.statut.name() == 'EN_ATTENTE'}" method="post"
-                          th:action="@{/commandes/{commandeId}/production/steps/{step}/start(commandeId=${commande.id}, step=${etape.typeEtape})}">
-                        <button type="submit">Démarrer</button>
-                    </form>
+        <span sec:authorize="hasAnyRole('ADMIN','MANAGER','OPERATOR')">
+            <form th:if="${etape.typeEtape.name() == 'CONTROLE_QUALITE' and etape.statut.name() == 'EN_COURS'}"
+                  method="post"
+                  th:action="@{/commandes/{commandeId}/production/quality-control(commandeId=${commande.id})}">
+                <select name="resultat" required>
+                    <option value="CONFORME">Conforme</option>
+                    <option value="NON_CONFORME">Non conforme</option>
+                </select>
+                <input type="text" name="commentaire" placeholder="Commentaire (optionnel)">
+                <button type="submit">Valider le contrôle</button>
+            </form>
 
-                    <form th:if="${etape.statut.name() == 'EN_COURS' and etape.typeEtape.name() != 'CONTROLE_QUALITE'}"
-                          method="post"
-                          th:action="@{/commandes/{commandeId}/production/steps/{step}/complete(commandeId=${commande.id}, step=${etape.typeEtape})}">
-                        <input th:if="${etape.typeEtape.name() == 'COUPE' or etape.typeEtape.name() == 'COUTURE' or etape.typeEtape.name() == 'FINITION'}"
-                               type="number" name="quantiteTraitee" placeholder="Quantité" min="1" required style="width:100px; display:inline-block;">
-                        <button type="submit">Terminer</button>
-                    </form>
+            <form th:if="${etape.statut.name() == 'EN_ATTENTE'}" method="post"
+                  th:action="@{/commandes/{commandeId}/production/steps/{step}/start(commandeId=${commande.id}, step=${etape.typeEtape})}">
+                <button type="submit">Démarrer cette étape</button>
+            </form>
 
-                    <span th:if="${etape.statut.name() == 'TERMINEE'}">
-                        ✓ Terminée
-                        <span th:if="${etape.resultatQualite != null}"
-                              th:class="'badge ' + (${etape.resultatQualite.name() == 'CONFORME'} ? 'badge-terminee' : 'badge-bloquee')"
-                              th:text="${etape.resultatQualite}"></span>
-                    </span>
-                </span>
+            <form th:if="${etape.statut.name() == 'EN_COURS' and etape.typeEtape.name() != 'CONTROLE_QUALITE'}"
+                  method="post"
+                  th:action="@{/commandes/{commandeId}/production/steps/{step}/complete(commandeId=${commande.id}, step=${etape.typeEtape})}">
+                <input th:if="${etape.typeEtape.name() == 'COUPE' or etape.typeEtape.name() == 'COUTURE' or etape.typeEtape.name() == 'FINITION'}"
+                       type="number" name="quantiteTraitee" placeholder="Quantité" min="1" required>
+                <button type="submit">Terminer cette étape</button>
+            </form>
 
-                <span sec:authorize="hasRole('USER')" th:text="${etape.statut}">Consultation seule</span>
-            </td>
-        </tr>
-        </tbody>
-    </table>
+            <span th:if="${etape.statut.name() == 'TERMINEE'}" style="color:var(--success); font-weight:600; font-size:0.88rem;">✓ Étape terminée</span>
+        </span>
+        <span sec:authorize="hasRole('USER')" style="color:var(--gray-500); font-size:0.88rem;">Consultation seule</span>
+    </div>
 
     <h2>Articles</h2>
     <table>
-        <thead>
-        <tr>
-            <th>Produit</th>
-            <th>Quantité</th>
-            <th>Taille</th>
-            <th>Couleur</th>
-        </tr>
-        </thead>
+        <thead><tr><th>Produit</th><th>Quantité</th><th>Taille</th><th>Couleur</th></tr></thead>
         <tbody>
         <tr th:each="ligne : ${commande.lignes}">
-            <td th:text="${ligne.produitNom}"></td>
-            <td th:text="${ligne.quantite}"></td>
-            <td th:text="${ligne.taille} ?: '-'"></td>
-            <td th:text="${ligne.couleur} ?: '-'"></td>
+            <td data-label="Produit" th:text="${ligne.produitNom}"></td>
+            <td data-label="Quantité" th:text="${ligne.quantite}"></td>
+            <td data-label="Taille" th:text="${ligne.taille} ?: '-'"></td>
+            <td data-label="Couleur" th:text="${ligne.couleur} ?: '-'"></td>
         </tr>
         </tbody>
     </table>
 </div>
+<script th:src="@{/js/app.js}"></script>
 </body>
 </html>
